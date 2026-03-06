@@ -19,9 +19,9 @@ export const getDashboard = async (req, res, next) => {
     // Build enriched inverter list
     const enriched = await Promise.all(
       inverters.map(async (inv) => {
-        // Latest telemetry
+        // latestt telemetry
         const telemetry = await Telemetry.findOne({ inverterId: inv._id }).sort({ createdAt: -1 });
-        // Latest prediction
+        // latestt prediction
         const prediction = await Prediction.findOne({ inverterId: inv._id }).sort({ createdAt: -1 });
         // Active faults count
         const activeFaultsCount = await Fault.countDocuments({ inverterId: inv._id });
