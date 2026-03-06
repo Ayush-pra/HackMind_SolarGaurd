@@ -6,18 +6,26 @@ import TelemetryForm from '../components/TelemetryForm';
 const SECTIONS = [
   { key: 'plant', label: 'Add New Plant', icon: '🏗️' },
   { key: 'inverter', label: 'Add New Inverter', icon: '⚡' },
-  { key: 'telemetry', label: 'Add Telemetry', icon: '📊' },
+  { key: 'readings', label: 'Add Readings', icon: '📊' },
 ];
 
 export default function InputPage() {
   const [active, setActive] = useState('plant');
+  const [selectedPlantId, setSelectedPlantId] = useState('');
+  const [selectedInverterId, setSelectedInverterId] = useState('');
+
+  const goToReadings = (plantId, inverterId) => {
+    setSelectedPlantId(plantId);
+    setSelectedInverterId(inverterId);
+    setActive('readings');
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-gray-900">Input / Configuration</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Add plants, configure inverters, or submit manual telemetry data.
+          Add plants, configure inverters, or submit readings data.
         </p>
       </div>
 
@@ -50,13 +58,22 @@ export default function InputPage() {
         {active === 'inverter' && (
           <>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Inverter</h3>
-            <InverterForm />
+            <InverterForm
+              selectedPlantId={selectedPlantId}
+              onPlantChange={setSelectedPlantId}
+              goToReadings={goToReadings}
+            />
           </>
         )}
-        {active === 'telemetry' && (
+        {active === 'readings' && (
           <>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Add Telemetry / Health Data</h3>
-            <TelemetryForm />
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Add Readings</h3>
+            <TelemetryForm
+              selectedPlantId={selectedPlantId}
+              onPlantChange={setSelectedPlantId}
+              selectedInverterId={selectedInverterId}
+              onInverterChange={setSelectedInverterId}
+            />
           </>
         )}
       </div>

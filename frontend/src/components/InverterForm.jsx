@@ -1,26 +1,15 @@
 import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import DynamicArchitectureFields from './DynamicArchitectureFields';
 
-export default function InverterForm() {
+export default function InverterForm({ selectedPlantId: parentPlantId, onPlantChange, goToReadings }) {
   const { plants, addInverter } = useAppContext();
 
-  const [selectedPlantId, setSelectedPlantId] = useState('');
+  const selectedPlantId = parentPlantId || '';
   const [form, setForm] = useState({
     inverterId: '',
     model: '',
-    temperature: '',
-    frequency: '',
-    voltageAB: '',
-    voltageBC: '',
-    voltageCA: '',
-    output: '',
-    efficiency: '',
-    kwhToday: '',
-    kwhTotal: '',
     operatingState: 'Running',
   });
-  const [dynValues, setDynValues] = useState({});
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
 
@@ -30,10 +19,6 @@ export default function InverterForm() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleDynChange = (key, value) => {
-    setDynValues((prev) => ({ ...prev, [key]: value }));
   };
 
   const validate = () => {
@@ -57,9 +42,15 @@ export default function InverterForm() {
         model: form.model,
         operatingState: form.operatingState,
       });
-      setSuccess(`Inverter "${form.inverterId}" added to ${plant.name}`);
-      setForm({ inverterId: '', model: '', temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', kwhToday: '', kwhTotal: '', operatingState: 'Running' });
-      setDynValues({});
+
+      const addedInverterId = form.inverterId;
+      setSuccess(`Inverter "${addedInverterId}" added to ${plant.name}. Switching to Add Readings…`);
+      setForm({ inverterId: '', model: '', operatingState: 'Running' });
+
+      // Auto-switch to readings with same plant + newly added inverter
+      setTimeout(() => {
+        goToReadings(selectedPlantId, addedInverterId);
+      }, 800);
     } catch (err) {
       setErrors({ inverterId: err.response?.data?.message || 'Failed to add inverter' });
     }
@@ -77,7 +68,7 @@ export default function InverterForm() {
         <label className="block text-sm font-medium text-gray-700 mb-1">Plant</label>
         <select
           value={selectedPlantId}
-          onChange={(e) => { setSelectedPlantId(e.target.value); setDynValues({}); }}
+          onChange={(e) => onPlantChange(e.target.value)}
           className={inputCls('plant')}
         >
           <option value="">Select a plant</option>
@@ -89,15 +80,6 @@ export default function InverterForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Inp label="Inverter ID" name="inverterId" value={form.inverterId} onChange={handleChange} cls={inputCls('inverterId')} error={errors.inverterId} placeholder="e.g. INV-A04" />
         <Inp label="Model" name="model" value={form.model} onChange={handleChange} cls={inputCls('model')} error={errors.model} placeholder="e.g. SUN2000-100KTL" />
-        <Inp label="Temperature (°C)" name="temperature" value={form.temperature} onChange={handleChange} cls={inputCls('temperature')} type="number" />
-        <Inp label="Frequency (Hz)" name="frequency" value={form.frequency} onChange={handleChange} cls={inputCls('frequency')} type="number" />
-        <Inp label="Voltage AB (V)" name="voltageAB" value={form.voltageAB} onChange={handleChange} cls={inputCls('voltageAB')} type="number" />
-        <Inp label="Voltage BC (V)" name="voltageBC" value={form.voltageBC} onChange={handleChange} cls={inputCls('voltageBC')} type="number" />
-        <Inp label="Voltage CA (V)" name="voltageCA" value={form.voltageCA} onChange={handleChange} cls={inputCls('voltageCA')} type="number" />
-        <Inp label="Output Power (kW)" name="output" value={form.output} onChange={handleChange} cls={inputCls('output')} type="number" />
-        <Inp label="Efficiency (%)" name="efficiency" value={form.efficiency} onChange={handleChange} cls={inputCls('efficiency')} type="number" />
-        <Inp label="kWh Today" name="kwhToday" value={form.kwhToday} onChange={handleChange} cls={inputCls('kwhToday')} type="number" />
-        <Inp label="kWh Total" name="kwhTotal" value={form.kwhTotal} onChange={handleChange} cls={inputCls('kwhTotal')} type="number" />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Operating State</label>
           <select name="operatingState" value={form.operatingState} onChange={handleChange} className={inputCls('operatingState')}>
@@ -108,14 +90,6 @@ export default function InverterForm() {
           </select>
         </div>
       </div>
-
-      {/* Dynamic architecture fields */}
-      {plant && (
-        <div className="space-y-4 pt-2">
-          <DynamicArchitectureFields prefix="pv" count={plant.pvChannels} values={dynValues} onChange={handleDynChange} />
-          <DynamicArchitectureFields prefix="string" count={plant.smuStrings} values={dynValues} onChange={handleDynChange} />
-        </div>
-      )}
 
       {success && <p className="text-sm text-green-600">{success}</p>}
 

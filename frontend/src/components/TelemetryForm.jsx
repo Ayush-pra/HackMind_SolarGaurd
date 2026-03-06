@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { addTelemetry } from '../api/inputApi';
 import DynamicArchitectureFields from './DynamicArchitectureFields';
 
-export default function TelemetryForm() {
+export default function TelemetryForm({ selectedPlantId: parentPlantId, onPlantChange, selectedInverterId: parentInverterId, onInverterChange }) {
   const { plants, inverters } = useAppContext();
 
-  const [selectedPlantId, setSelectedPlantId] = useState('');
-  const [selectedInverterId, setSelectedInverterId] = useState('');
+  const selectedPlantId = parentPlantId || '';
+  const selectedInverterId = parentInverterId || '';
+
   const [form, setForm] = useState({
     temperature: '',
     frequency: '',
@@ -18,7 +19,6 @@ export default function TelemetryForm() {
     efficiency: '',
     irradiance: '',
     stringImbalance: '',
-    faultNotes: '',
   });
   const [dynValues, setDynValues] = useState({});
   const [errors, setErrors] = useState({});
@@ -26,6 +26,11 @@ export default function TelemetryForm() {
 
   const plant = plants.find((p) => p.id === selectedPlantId);
   const plantInverters = inverters.filter((inv) => inv.plantId === selectedPlantId);
+
+  // Reset dynamic fields when plant changes
+  useEffect(() => {
+    setDynValues({});
+  }, [selectedPlantId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,6 +40,11 @@ export default function TelemetryForm() {
 
   const handleDynChange = (key, value) => {
     setDynValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handlePlantChange = (e) => {
+    onPlantChange(e.target.value);
+    onInverterChange('');
   };
 
   const validate = () => {
@@ -62,7 +72,6 @@ export default function TelemetryForm() {
       efficiency: Number(form.efficiency) || null,
       irradiance: Number(form.irradiance) || null,
       stringImbalance: Number(form.stringImbalance) || null,
-      faultNotes: form.faultNotes,
       pvChannels: Object.entries(dynValues)
         .filter(([k]) => k.startsWith('pv'))
         .map(([, v]) => Number(v) || 0),
@@ -73,11 +82,11 @@ export default function TelemetryForm() {
 
     try {
       await addTelemetry(payload);
-      setSuccess(`Telemetry submitted for ${selectedInverterId}`);
-      setForm({ temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', irradiance: '', stringImbalance: '', faultNotes: '' });
+      setSuccess(`Readings submitted for ${selectedInverterId}`);
+      setForm({ temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', irradiance: '', stringImbalance: '' });
       setDynValues({});
     } catch (err) {
-      setErrors({ plant: err.response?.data?.message || 'Failed to submit telemetry' });
+      setErrors({ plant: err.response?.data?.message || 'Failed to submit readings' });
     }
   };
 
@@ -94,7 +103,7 @@ export default function TelemetryForm() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Plant</label>
           <select
             value={selectedPlantId}
-            onChange={(e) => { setSelectedPlantId(e.target.value); setSelectedInverterId(''); setDynValues({}); }}
+            onChange={handlePlantChange}
             className={inputCls('plant')}
           >
             <option value="">Select a plant</option>
@@ -106,7 +115,7 @@ export default function TelemetryForm() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Inverter</label>
           <select
             value={selectedInverterId}
-            onChange={(e) => setSelectedInverterId(e.target.value)}
+            onChange={(e) => onInverterChange(e.target.value)}
             className={inputCls('inverter')}
             disabled={!selectedPlantId}
           >
@@ -117,7 +126,7 @@ export default function TelemetryForm() {
         </div>
       </div>
 
-      {/* Telemetry fields */}
+      {/* Reading fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <Inp label="Temperature (°C)" name="temperature" value={form.temperature} onChange={handleChange} cls={inputCls('temperature')} type="number" />
         <Inp label="Frequency (Hz)" name="frequency" value={form.frequency} onChange={handleChange} cls={inputCls('frequency')} type="number" />
@@ -128,12 +137,6 @@ export default function TelemetryForm() {
         <Inp label="Efficiency (%)" name="efficiency" value={form.efficiency} onChange={handleChange} cls={inputCls('efficiency')} type="number" />
         <Inp label="Irradiance (W/m²)" name="irradiance" value={form.irradiance} onChange={handleChange} cls={inputCls('irradiance')} type="number" />
         <Inp label="String Imbalance (%)" name="stringImbalance" value={form.stringImbalance} onChange={handleChange} cls={inputCls('stringImbalance')} type="number" />
-      </div>
-
-      {/* Fault notes */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Fault Notes</label>
-        <textarea name="faultNotes" value={form.faultNotes} onChange={handleChange} rows={3} placeholder="Describe any observed faults or issues…" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       </div>
 
       {/* Dynamic architecture fields */}
@@ -147,7 +150,7 @@ export default function TelemetryForm() {
       {success && <p className="text-sm text-green-600">{success}</p>}
 
       <button type="submit" className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
-        Submit Telemetry
+        Submit Readings
       </button>
     </form>
   );
