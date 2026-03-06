@@ -9,17 +9,23 @@ export const createTelemetry = async (req, res, next) => {
       plantId,
       inverterId, // This is the string inverterId (e.g. "INV-A01")
       temperature,
+      output,
+      pvVoltages,
+      pvCurrents,
+      smuStrings,
+      alarmCode,
+      opState,
+      // Optional monitoring fields
       frequency,
       voltageAB,
       voltageBC,
       voltageCA,
-      output,
       efficiency,
       irradiance,
       stringImbalance,
+      kwhToday,
+      kwhTotal,
       faultNotes,
-      pvChannels,
-      smuStrings,
     } = req.body;
 
     if (!plantId || !inverterId) {
@@ -33,7 +39,7 @@ export const createTelemetry = async (req, res, next) => {
     }
 
     // Validate architecture fields
-    const archError = await validateArchitectureFields(plantId, pvChannels, smuStrings);
+    const archError = await validateArchitectureFields(plantId, pvVoltages, pvCurrents, smuStrings);
     if (archError) {
       return res.status(400).json({ message: archError });
     }
@@ -42,19 +48,22 @@ export const createTelemetry = async (req, res, next) => {
       plantId,
       inverterId: inverter._id,
       temperature: temperature ?? null,
+      outputPower: output ?? null,
+      pvVoltages: pvVoltages || [],
+      pvCurrents: pvCurrents || [],
+      smuStrings: smuStrings || [],
+      alarmCode: alarmCode ?? null,
+      opState: opState || '',
       frequency: frequency ?? null,
       voltageAB: voltageAB ?? null,
       voltageBC: voltageBC ?? null,
       voltageCA: voltageCA ?? null,
-      outputPower: output ?? null,
       efficiency: efficiency ?? null,
       irradiance: irradiance ?? null,
       stringImbalance: stringImbalance ?? null,
-      kwhToday: req.body.kwhToday ?? null,
-      kwhTotal: req.body.kwhTotal ?? null,
+      kwhToday: kwhToday ?? null,
+      kwhTotal: kwhTotal ?? null,
       faultNotes: faultNotes || '',
-      pvChannels: pvChannels || [],
-      smuStrings: smuStrings || [],
     });
 
     res.status(201).json({

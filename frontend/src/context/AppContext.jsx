@@ -1,6 +1,16 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getPlants, addPlant as apiAddPlant, addInverter as apiAddInverter } from '../api/inputApi';
-import { getDashboardData } from '../api/dashboardApi';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  getPlants,
+  addPlant as apiAddPlant,
+  addInverter as apiAddInverter,
+} from "../api/inputApi";
+import { getDashboardData } from "../api/dashboardApi";
 
 const AppContext = createContext();
 
@@ -13,16 +23,23 @@ export function AppProvider({ children }) {
 
   // Restore user from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('user');
+    const stored = localStorage.getItem("user");
     if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
+      try {
+        setUser(JSON.parse(stored));
+      } catch {
+        /* ignore */
+      }
     }
   }, []);
 
   // Fetch plants from backend when user is authenticated
   const fetchPlants = useCallback(async () => {
-    const token = localStorage.getItem('token');
-    if (!token) { setLoading(false); return; }
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       const data = await getPlants();
       setPlants(data);
@@ -30,7 +47,7 @@ export function AppProvider({ children }) {
         setSelectedPlantId(data[0].id);
       }
     } catch (err) {
-      console.error('Failed to fetch plants:', err);
+      console.error("Failed to fetch plants:", err);
     } finally {
       setLoading(false);
     }
@@ -40,31 +57,33 @@ export function AppProvider({ children }) {
     fetchPlants();
   }, [fetchPlants, user]);
 
-  // Fetch inverters for the selected plant via the dashboard endpoint
-  const fetchInverters = useCallback(async () => {
-    if (!selectedPlantId) return;
-    const token = localStorage.getItem('token');
+  // Fetch inverters for a specific plant
+  const refreshInvertersForPlant = useCallback(async (plantId) => {
+    const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const data = await getDashboardData(selectedPlantId);
+      const data = await getDashboardData(plantId);
       if (data && data.inverters) {
-        // Merge new inverters ensuring we keep inverters from other plants too
         setInverters((prev) => {
-          const otherPlant = prev.filter((inv) => inv.plantId !== selectedPlantId);
+          const otherPlant = prev.filter((inv) => inv.plantId !== plantId);
           return [...otherPlant, ...data.inverters];
         });
       }
     } catch (err) {
-      console.error('Failed to fetch inverters:', err);
+      console.error("Failed to fetch inverters:", err);
     }
-  }, [selectedPlantId]);
+  }, []);
 
   useEffect(() => {
-    fetchInverters();
-  }, [fetchInverters]);
+    if (selectedPlantId) {
+      refreshInvertersForPlant(selectedPlantId);
+    }
+  }, [selectedPlantId, refreshInvertersForPlant]);
 
   const selectedPlant = plants.find((p) => p.id === selectedPlantId) || null;
-  const plantInverters = inverters.filter((inv) => inv.plantId === selectedPlantId);
+  const plantInverters = inverters.filter(
+    (inv) => inv.plantId === selectedPlantId,
+  );
 
   // Group inverters by plant for sidebar
   const invertersByPlant = plants.reduce((acc, plant) => {
@@ -79,7 +98,7 @@ export function AppProvider({ children }) {
       if (!selectedPlantId) setSelectedPlantId(newPlant.id);
       return newPlant;
     } catch (err) {
-      console.error('Failed to add plant:', err);
+      console.error("Failed to add plant:", err);
       throw err;
     }
   };
@@ -90,14 +109,14 @@ export function AppProvider({ children }) {
       setInverters((prev) => [...prev, newInv]);
       return newInv;
     } catch (err) {
-      console.error('Failed to add inverter:', err);
+      console.error("Failed to add inverter:", err);
       throw err;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     setPlants([]);
     setInverters([]);
@@ -123,7 +142,7 @@ export function AppProvider({ children }) {
         logout,
         loading,
         fetchPlants,
-        fetchInverters,
+        refreshInvertersForPlant,
       }}
     >
       {children}

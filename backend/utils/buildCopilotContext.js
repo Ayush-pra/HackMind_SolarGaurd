@@ -43,18 +43,22 @@ const buildCopilotContext = async ({ plantId, inverterId }) => {
       if (telemetry) {
         lines.push('--- Latest Telemetry ---');
         if (telemetry.temperature != null) lines.push(`Temperature: ${telemetry.temperature} °C`);
+        if (telemetry.outputPower != null) lines.push(`Output Power: ${telemetry.outputPower} kW`);
+        if (telemetry.pvVoltages?.length) lines.push(`PV Voltages: [${telemetry.pvVoltages.join(', ')}] V`);
+        if (telemetry.pvCurrents?.length) lines.push(`PV Currents: [${telemetry.pvCurrents.join(', ')}] A`);
+        if (telemetry.smuStrings?.length) lines.push(`SMU Strings: [${telemetry.smuStrings.join(', ')}]`);
+        if (telemetry.alarmCode != null) lines.push(`Alarm Code: ${telemetry.alarmCode}`);
+        if (telemetry.opState) lines.push(`Operational State: ${telemetry.opState}`);
         if (telemetry.frequency != null) lines.push(`Frequency: ${telemetry.frequency} Hz`);
         if (telemetry.voltageAB != null) lines.push(`Voltage AB: ${telemetry.voltageAB} V`);
         if (telemetry.voltageBC != null) lines.push(`Voltage BC: ${telemetry.voltageBC} V`);
         if (telemetry.voltageCA != null) lines.push(`Voltage CA: ${telemetry.voltageCA} V`);
-        if (telemetry.outputPower != null) lines.push(`Output Power: ${telemetry.outputPower} kW`);
         if (telemetry.efficiency != null) lines.push(`Efficiency: ${telemetry.efficiency}%`);
         if (telemetry.irradiance != null) lines.push(`Irradiance: ${telemetry.irradiance} W/m²`);
         if (telemetry.stringImbalance != null) lines.push(`String Imbalance: ${telemetry.stringImbalance}%`);
         if (telemetry.kwhToday != null) lines.push(`kWh Today: ${telemetry.kwhToday}`);
         if (telemetry.kwhTotal != null) lines.push(`kWh Total: ${telemetry.kwhTotal}`);
-        if (telemetry.pvChannels?.length) lines.push(`PV Channels: [${telemetry.pvChannels.join(', ')}]`);
-        if (telemetry.smuStrings?.length) lines.push(`SMU Strings: [${telemetry.smuStrings.join(', ')}]`);
+        if (telemetry.faultNotes) lines.push(`Fault Notes: ${telemetry.faultNotes}`);
       }
 
       // Latest prediction
