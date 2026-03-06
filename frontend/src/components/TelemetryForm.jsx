@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { addTelemetry } from '../api/inputApi';
 import DynamicArchitectureFields from './DynamicArchitectureFields';
 
 export default function TelemetryForm() {
@@ -43,13 +44,12 @@ export default function TelemetryForm() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess('');
     const errs = validate();
     if (Object.keys(errs).length) return setErrors(errs);
 
-    // Placeholder — will call addTelemetry(data) from inputApi.js
     const payload = {
       plantId: selectedPlantId,
       inverterId: selectedInverterId,
@@ -71,10 +71,14 @@ export default function TelemetryForm() {
         .map(([, v]) => Number(v) || 0),
     };
 
-    console.log('Telemetry payload:', payload);
-    setSuccess(`Telemetry submitted for ${selectedInverterId}`);
-    setForm({ temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', irradiance: '', stringImbalance: '', faultNotes: '' });
-    setDynValues({});
+    try {
+      await addTelemetry(payload);
+      setSuccess(`Telemetry submitted for ${selectedInverterId}`);
+      setForm({ temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', irradiance: '', stringImbalance: '', faultNotes: '' });
+      setDynValues({});
+    } catch (err) {
+      setErrors({ plant: err.response?.data?.message || 'Failed to submit telemetry' });
+    }
   };
 
   const inputCls = (field) =>

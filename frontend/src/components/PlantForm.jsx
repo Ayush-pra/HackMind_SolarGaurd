@@ -38,18 +38,20 @@ export default function PlantForm() {
     const errs = validate();
     if (Object.keys(errs).length) return setErrors(errs);
 
-    // Placeholder — will call addPlant(data) API when backend is ready
-    addPlant({
-      name: form.name,
-      location: form.location,
-      pvChannels: Number(form.pvChannels),
-      smuStrings: Number(form.smuStrings),
-      capacityMW: form.capacityMW ? Number(form.capacityMW) : null,
-      description: form.description,
-    });
-
-    setSuccess(`Plant "${form.name}" added successfully!`);
-    setForm({ name: '', location: '', pvChannels: '', smuStrings: '', capacityMW: '', description: '' });
+    try {
+      await addPlant({
+        name: form.name,
+        location: form.location,
+        pvChannels: Number(form.pvChannels),
+        smuStrings: Number(form.smuStrings),
+        capacityMW: form.capacityMW ? Number(form.capacityMW) : null,
+        description: form.description,
+      });
+      setSuccess(`Plant "${form.name}" added successfully!`);
+      setForm({ name: '', location: '', pvChannels: '', smuStrings: '', capacityMW: '', description: '' });
+    } catch (err) {
+      setErrors({ name: err.response?.data?.message || 'Failed to add plant' });
+    }
   };
 
   const inputCls = (field) =>

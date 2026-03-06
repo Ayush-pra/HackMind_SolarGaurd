@@ -44,45 +44,25 @@ export default function InverterForm() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess('');
     const errs = validate();
     if (Object.keys(errs).length) return setErrors(errs);
 
-    addInverter({
-      plantId: selectedPlantId,
-      inverterId: form.inverterId,
-      model: form.model,
-      temperature: Number(form.temperature) || 0,
-      frequency: Number(form.frequency) || 0,
-      voltageAB: Number(form.voltageAB) || 0,
-      voltageBC: Number(form.voltageBC) || 0,
-      voltageCA: Number(form.voltageCA) || 0,
-      output: Number(form.output) || 0,
-      efficiency: Number(form.efficiency) || 0,
-      kwhToday: Number(form.kwhToday) || 0,
-      kwhTotal: Number(form.kwhTotal) || 0,
-      operatingState: form.operatingState,
-      riskScore: 0,
-      riskLabel: 'Low',
-      activeFaults: 0,
-      daysToEvent: 365,
-      riskTrend: 'stable',
-      dcVoltage: 0,
-      irradiance: 0,
-      stringImbalance: 0,
-      pvChannels: Object.entries(dynValues)
-        .filter(([k]) => k.startsWith('pv'))
-        .map(([, v]) => Number(v) || 0),
-      smuStrings: Object.entries(dynValues)
-        .filter(([k]) => k.startsWith('string'))
-        .map(([, v]) => Number(v) || 0),
-    });
-
-    setSuccess(`Inverter "${form.inverterId}" added to ${plant.name}`);
-    setForm({ inverterId: '', model: '', temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', kwhToday: '', kwhTotal: '', operatingState: 'Running' });
-    setDynValues({});
+    try {
+      await addInverter({
+        plantId: selectedPlantId,
+        inverterId: form.inverterId,
+        model: form.model,
+        operatingState: form.operatingState,
+      });
+      setSuccess(`Inverter "${form.inverterId}" added to ${plant.name}`);
+      setForm({ inverterId: '', model: '', temperature: '', frequency: '', voltageAB: '', voltageBC: '', voltageCA: '', output: '', efficiency: '', kwhToday: '', kwhTotal: '', operatingState: 'Running' });
+      setDynValues({});
+    } catch (err) {
+      setErrors({ inverterId: err.response?.data?.message || 'Failed to add inverter' });
+    }
   };
 
   const inputCls = (field) =>

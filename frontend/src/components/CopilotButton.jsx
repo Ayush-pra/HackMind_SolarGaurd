@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { askCopilot } from '../api/copilotApi';
 
 export default function CopilotButton() {
   const [open, setOpen] = useState(false);
@@ -35,17 +36,20 @@ function CopilotDrawer({ onClose }) {
     setInput('');
     setLoading(true);
 
-    // Placeholder — replace with real askCopilot(payload) call
-    setTimeout(() => {
+    try {
+      const data = await askCopilot({ question });
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          text: `This is a placeholder response. Once the backend Copilot API is connected, I'll provide real insights about: "${question}"`,
-        },
+        { role: 'assistant', text: data.answer || 'No response received.' },
       ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: 'Sorry, something went wrong. Please try again.' },
+      ]);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyDown = (e) => {

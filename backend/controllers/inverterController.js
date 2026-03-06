@@ -57,6 +57,23 @@ export const createInverter = async (req, res, next) => {
       riskScore: inverter.riskScore,
       riskLabel: inverter.riskLevel,
       operatingState: inverter.operatingState,
+      temperature: 0,
+      output: 0,
+      efficiency: 0,
+      activeFaults: 0,
+      daysToEvent: 365,
+      riskTrend: 'stable',
+      dcVoltage: 0,
+      irradiance: 0,
+      stringImbalance: 0,
+      frequency: 0,
+      voltageAB: 0,
+      voltageBC: 0,
+      voltageCA: 0,
+      kwhToday: 0,
+      kwhTotal: 0,
+      pvChannels: [],
+      smuStrings: [],
     });
   } catch (error) {
     next(error);

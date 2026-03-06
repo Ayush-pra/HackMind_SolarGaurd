@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { mockFaults, mockAIAnalysis } from '../data/mockData';
+import { generateAIAnalysis } from '../api/inverterApi';
 import RiskGauge from '../components/RiskGauge';
 import SensorCard from '../components/SensorCard';
 import FaultList from '../components/FaultList';
@@ -19,7 +19,7 @@ export default function InverterDetails() {
 
   const inverter = inverters.find((inv) => inv.id === inverterId);
   const plant = inverter ? plants.find((p) => p.id === inverter.plantId) : null;
-  const faults = mockFaults[inverterId] || [];
+  const faults = inverter?.faults || [];
 
   if (!inverter) {
     return (
@@ -32,13 +32,17 @@ export default function InverterDetails() {
     );
   }
 
-  const handleGenerateAI = () => {
+  const handleGenerateAI = async () => {
     setAiLoading(true);
-    // Placeholder — replace with generateAIAnalysis(inverterId) call
-    setTimeout(() => {
-      setAiData(mockAIAnalysis);
+    try {
+      const data = await generateAIAnalysis(inverterId);
+      setAiData(data);
+    } catch (err) {
+      console.error('AI analysis failed:', err);
+      setAiData(null);
+    } finally {
       setAiLoading(false);
-    }, 1500);
+    }
   };
 
   const sensorStatus = (val, low, high) =>
