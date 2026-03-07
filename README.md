@@ -218,7 +218,30 @@ R2- score: 0.87
 
 ## AI Explanation
 - Groq Llama LLM
-- 
+
+
+---
+
+# Running the Project
+
+## Train the ML Models
+python main_model_training.py
+
+This generates : 3 .pkl file , put them into ml_service 
+- start Ml service ,
+cd ml_service 
+uvicorn app:app --host 0.0.0.0 --port 8000
+
+start backend : 
+cd backend
+npm start 
+
+start frontend:
+cd frontend
+npm run dev 
+
+
+  
  Team :
  Leader -  Ayush Prajapati , 8160478278 , ayushprajapati15806@gmail.com , Nirma University , 2027
 Members :
