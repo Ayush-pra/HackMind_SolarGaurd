@@ -86,10 +86,9 @@ export const getRiskTrend = async (req, res, next) => {
 
     const prediction = await Prediction.findOne({ inverterId: inverter._id }).sort({ createdAt: -1 });
 
-    // Return historical + forecast arrays; frontend expects { day, historical, predicted }
+    // Return only top features for risk analysis
     res.json({
-      historicalRisk: prediction?.historicalRisk ?? [],
-      forecastRisk: prediction?.forecastRisk ?? [],
+      topFeatures: prediction?.topFeatures ?? [],
     });
   } catch (error) {
     next(error);
@@ -110,8 +109,8 @@ export const getPowerAnalysis = async (req, res, next) => {
     const plant = await Plant.findById(inverter.plantId);
 
     res.json({
-      historicalPower: prediction?.historicalPower ?? [],
-      forecastPower: prediction?.forecastPower ?? [],
+      historicalRisk: prediction?.historicalRisk ?? [],
+      forecastRisk: prediction?.forecastRisk ?? [],
       ratedCapacity: plant?.capacityMW ?? 0,
       outputDeficit: 0,
     });

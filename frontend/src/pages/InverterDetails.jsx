@@ -1,21 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
-import { generateAIAnalysis } from "../api/inverterApi";
+import { generateAIAnalysis, getRiskTrend } from "../api/inverterApi";
 import RiskGauge from "../components/RiskGauge";
 import SensorCard from "../components/SensorCard";
 import FaultList from "../components/FaultList";
-import RiskTrendChart from "../charts/RiskTrendChart";
-import PowerAnalysisChart from "../charts/PowerAnalysisChart";
+import RiskTrendChart from "../charts/RiskTrendChart"; // bar chart for top features
 
-const TABS = ["Risk Trend", "Power Analysis", "Sensor Data", "AI Analysis"];
+const TABS = ["Top Features", "Sensor Data", "AI Analysis"];
 
 export default function InverterDetails() {
   const { inverterId } = useParams();
   const { inverters, plants } = useAppContext();
-  const [activeTab, setActiveTab] = useState("Risk Trend");
+  const [activeTab, setActiveTab] = useState("Top Features");
   const [aiData, setAiData] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [topFeaturesData, setTopFeaturesData] = useState(null); // holds top features now
 
   const inverter = inverters.find((inv) => inv.id === inverterId);
   const plant = inverter ? plants.find((p) => p.id === inverter.plantId) : null;
@@ -56,6 +56,31 @@ export default function InverterDetails() {
       : val <= low * 1.1 || val >= high * 0.9
         ? "Warning"
         : "Normal";
+
+  useEffect(() => {
+    if (activeTab === "Top Features" && !topFeaturesData) {
+      fetchRiskTrend();
+    }
+  }, [activeTab]);
+
+  const fetchRiskTrend = async () => {
+    try {
+      const data = await getRiskTrend(inverterId);
+      // Use topFeatures from prediction for the chart
+      // Assume data includes topFeatures: [{ feature, value, reason }]
+      const transformed = data.topFeatures
+        ? data.topFeatures.map((item) => ({
+            feature: item.feature,
+            value: item.value,
+            reason: item.reason,
+          }))
+        : [];
+      setTopFeaturesData(transformed);
+    } catch (err) {
+      console.error("Failed to fetch risk trend:", err);
+      setTopFeaturesData([]); // Set to empty array to show empty chart
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -104,13 +129,13 @@ export default function InverterDetails() {
           status={sensorStatus(inverter.temperature, 30, 75)}
           threshold="< 75°C"
         />
-        <SensorCard
+        {/* <SensorCard
           label="Efficiency"
           value={inverter.efficiency}
           unit="%"
           status={sensorStatus(inverter.efficiency, 90, 200)}
           threshold="> 90%"
-        />
+        /> */}
         <SensorCard
           label="AC Output"
           value={inverter.output}
@@ -118,7 +143,7 @@ export default function InverterDetails() {
           status="Normal"
           threshold="Rated capacity"
         />
-        <SensorCard
+        {/* <SensorCard
           label="DC Voltage"
           value={inverter.dcVoltage}
           unit="V"
@@ -138,7 +163,7 @@ export default function InverterDetails() {
           unit="%"
           status={sensorStatus(inverter.stringImbalance, -1, 3)}
           threshold="< 3%"
-        />
+        /> */}
       </div>
 
       {/* Active Faults */}
@@ -170,8 +195,9 @@ export default function InverterDetails() {
         </div>
 
         <div className="p-5">
-          {activeTab === "Risk Trend" && <RiskTrendChart />}
-          {activeTab === "Power Analysis" && <PowerAnalysisChart />}
+          {activeTab === "Top Features" && (
+            <RiskTrendChart data={topFeaturesData} />
+          )}
           {activeTab === "Sensor Data" && (
             <SensorDataGrid inverter={inverter} />
           )}
