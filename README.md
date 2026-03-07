@@ -218,7 +218,13 @@ R2- score: 0.87
 
 ## AI Explanation
 - Groq Llama LLM
-
-
+- 
+ Team :
+ Leader -  Ayush Prajapati , 8160478278 , ayushprajapati15806@gmail.com , Nirma University , 2027
+Members :
+  Mannkumar Prajapati , 8469830384 , mannprajapati0284@gmail.com , Nirma University , 2027
+  Vivek Prajapati , 9316551140 , prajapativivek93165@gmail.com , Nirma University , 2027
+  Tirth patel , 6354022779 , tirthpatel9606@gmail.com , Nirma University , 2027
+  Vishv sheta , 7862025223 , vishv1511@gmail.com , Nirma University , 2027
 
 
