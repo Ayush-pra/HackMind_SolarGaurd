@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { askCopilot } from '../api/copilotApi';
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { askCopilot } from "../api/copilotApi";
 
 export default function CopilotButton() {
   const [open, setOpen] = useState(false);
@@ -11,8 +12,18 @@ export default function CopilotButton() {
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-indigo-700 transition-colors"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2z" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2z"
+          />
         </svg>
         Ask Copilot
       </button>
@@ -25,27 +36,30 @@ export default function CopilotButton() {
 
 function CopilotDrawer({ onClose }) {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
     const question = input.trim();
     if (!question) return;
 
-    setMessages((prev) => [...prev, { role: 'user', text: question }]);
-    setInput('');
+    setMessages((prev) => [...prev, { role: "user", text: question }]);
+    setInput("");
     setLoading(true);
 
     try {
       const data = await askCopilot({ question });
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: data.answer || 'No response received.' },
+        { role: "assistant", text: data.answer || "No response received." },
       ]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: 'Sorry, something went wrong. Please try again.' },
+        {
+          role: "assistant",
+          text: "Sorry, something went wrong. Please try again.",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -53,7 +67,7 @@ function CopilotDrawer({ onClose }) {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -78,8 +92,18 @@ function CopilotDrawer({ onClose }) {
             onClick={onClose}
             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -98,16 +122,22 @@ function CopilotDrawer({ onClose }) {
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-[80%] rounded-xl px-4 py-2.5 text-sm ${
-                  m.role === 'user'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-800'
+                  m.role === "user"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-800"
                 }`}
               >
-                {m.text}
+                {m.role === "assistant" ? (
+                  <div className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                    <ReactMarkdown>{m.text}</ReactMarkdown>
+                  </div>
+                ) : (
+                  m.text
+                )}
               </div>
             </div>
           ))}

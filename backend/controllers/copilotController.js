@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import Inverter from '../models/Inverter.js';
 import Telemetry from '../models/Telemetry.js';
 import Fault from '../models/Fault.js';
@@ -62,7 +62,7 @@ export const analyzeInverterByParam = async (req, res, next) => {
   }
 };
 
-// POST /api/copilot/ask  — Real LLM integration via OpenRouter
+// POST /api/copilot/ask  — LLM integration via Groq
 export const askCopilot = async (req, res, next) => {
   try {
     const { question, plantId, inverterId } = req.body;
@@ -84,28 +84,34 @@ export const askCopilot = async (req, res, next) => {
     }
     userMessage += `Question:\n${question}`;
 
-    // 3. Call Google Gemini
-    const apiKey = process.env.GEMINI_API_KEY;
+    // 3. Call Groq API
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       return res.status(500).json({
-        message: 'Gemini API key is not configured. Set GEMINI_API_KEY in .env',
+        message: 'Groq API key is not configured. Set GROQ_API_KEY in .env',
       });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const client = new OpenAI({
+      apiKey,
+      baseURL: 'https://api.groq.com/openai/v1',
+    });
 
-    const prompt = `${SYSTEM_PROMPT}\n\n${userMessage}`;
+    const completion = await client.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ],
+    });
 
-    const result = await model.generateContent(prompt);
     const answer =
-      result.response?.text() ||
+      completion.choices?.[0]?.message?.content ||
       'I was unable to generate a response. Please try again.';
 
     res.json({ answer, relatedEntities });
   } catch (error) {
-    // If the Gemini call fails, return a useful error instead of crashing
-    console.error('Gemini API error:', error.message || error);
+    console.error('Groq API error:', error.message || error);
     if (error.status === 429) {
       return res.status(429).json({ message: 'AI rate limit reached. Please wait and try again.' });
     }
