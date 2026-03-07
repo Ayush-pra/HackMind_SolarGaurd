@@ -113,7 +113,7 @@ export default function InverterDetails() {
             <div className="flex flex-wrap gap-4 mt-3">
               <InfoChip label="Risk Score" value={`${inverter.riskScore}%`} />
               <InfoChip label="Status" value={inverter.riskLabel} />
-              <InfoChip label="Days to Event" value={inverter.daysToEvent} />
+              <InfoChip label="Days to Event" value={7} />
               <InfoChip label="Trend" value={inverter.riskTrend} />
             </div>
           </div>
