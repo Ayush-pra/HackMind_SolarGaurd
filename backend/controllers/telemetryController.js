@@ -142,6 +142,11 @@ export const createTelemetry = async (req, res, next) => {
         {
           riskScore,
           riskLevel: prediction.risk_class,
+
+          // NEW FIELDS FROM ML SERVICE
+          failureSummary: prediction.failure_summary || "",
+          topFeatures: prediction.top_features || [],
+
           estimatedDaysToEvent: 365,
           riskTrend: 'stable',
           lastUpdated: new Date(),

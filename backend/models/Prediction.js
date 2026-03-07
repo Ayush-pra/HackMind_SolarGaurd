@@ -21,6 +21,18 @@ const predictionSchema = new mongoose.Schema(
     forecastPower: { type: [Object], default: [] },
 
     aiAnalysis: { type: Object, default: null },
+    topFeatures: [
+      {
+        feature: String,
+        value: Number,
+        reason: String
+      }
+    ],
+
+    failureSummary: {
+      type: String,
+      default: ""
+    }
   },
   { timestamps: true }
 );
