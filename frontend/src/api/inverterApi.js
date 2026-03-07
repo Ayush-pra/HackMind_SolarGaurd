@@ -6,8 +6,8 @@ export const getInverterDetails = async (inverterId) => {
   return response.data;
 };
 
-/** Trigger AI analysis for an inverter */
+/** Get AI analysis for an inverter */
 export const generateAIAnalysis = async (inverterId) => {
-  const response = await api.post(`/api/inverters/${inverterId}/analyze`);
+  const response = await api.get(`/api/inverters/${inverterId}/analyze`);
   return response.data;
 };

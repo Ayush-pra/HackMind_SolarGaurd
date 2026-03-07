@@ -119,3 +119,22 @@ export const getPowerAnalysis = async (req, res, next) => {
     next(error);
   }
 };
+
+// GET /api/inverters/:inverterId/analyze
+export const getAIAnalysis = async (req, res, next) => {
+  try {
+    const { inverterId } = req.params;
+
+    const inverter = await Inverter.findOne({ inverterId });
+    if (!inverter) {
+      return res.status(404).json({ message: `Inverter "${inverterId}" not found` });
+    }
+
+    const prediction = await Prediction.findOne({ inverterId: inverter._id }).sort({ createdAt: -1 });
+    const failureSummary = prediction?.failureSummary ?? 'No analysis available';
+
+    res.json({ failureSummary });
+  } catch (error) {
+    next(error);
+  }
+};
