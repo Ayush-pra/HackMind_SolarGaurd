@@ -50,10 +50,16 @@ Predicts risk class and score based on telemetry features.
 
 ```json
 {
-  "risk_class": "Low",
+  "risk_class": "No Risk",
   "risk_score": 15.5
 }
 ```
+
+**Valid risk_class values:**
+
+- `"No Risk"`
+- `"Degradation Risk"`
+- `"Shutdown Risk"`
 
 ## Models
 

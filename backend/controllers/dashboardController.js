@@ -64,7 +64,7 @@ export const getDashboard = async (req, res, next) => {
     );
 
     // Risk counts
-    const riskCounts = { Critical: 0, High: 0, Moderate: 0, Low: 0 };
+    const riskCounts = { 'No Risk': 0, 'Degradation Risk': 0, 'Shutdown Risk': 0 };
     enriched.forEach((inv) => {
       riskCounts[inv.riskLabel] = (riskCounts[inv.riskLabel] || 0) + 1;
     });

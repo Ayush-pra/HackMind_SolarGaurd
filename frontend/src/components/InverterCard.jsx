@@ -1,16 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import RiskGauge from './RiskGauge';
+import { useNavigate } from "react-router-dom";
+import RiskGauge from "./RiskGauge";
 
 const RISK_DOT = {
-  Critical: 'bg-red-500',
-  High: 'bg-orange-500',
-  Moderate: 'bg-yellow-500',
-  Low: 'bg-green-500',
+  "No Risk": "bg-green-500",
+  "Degradation Risk": "bg-yellow-500",
+  "Shutdown Risk": "bg-red-500",
 };
 
 export default function InverterCard({ inverter }) {
   const navigate = useNavigate();
-  const dot = RISK_DOT[inverter.riskLabel] || 'bg-gray-400';
+  const dot = RISK_DOT[inverter.riskLabel] || "bg-gray-400";
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-4">
@@ -25,7 +24,11 @@ export default function InverterCard({ inverter }) {
 
       {/* Gauge */}
       <div className="flex justify-center">
-        <RiskGauge score={inverter.riskScore} label={inverter.riskLabel} size={110} />
+        <RiskGauge
+          score={inverter.riskScore}
+          label={inverter.riskLabel}
+          size={110}
+        />
       </div>
 
       {/* Metrics grid */}
@@ -33,13 +36,20 @@ export default function InverterCard({ inverter }) {
         <Metric label="Temp" value={`${inverter.temperature}°C`} />
         <Metric label="Output" value={`${inverter.output} kW`} />
         <Metric label="Efficiency" value={`${inverter.efficiency}%`} />
-        <Metric label="Faults" value={inverter.activeFaults} warn={inverter.activeFaults > 0} />
+        <Metric
+          label="Faults"
+          value={inverter.activeFaults}
+          warn={inverter.activeFaults > 0}
+        />
       </div>
 
       {/* Days to event */}
       <p className="text-xs text-gray-500 text-center">
-        Est. <span className="font-semibold text-gray-800">{inverter.daysToEvent}</span> days to
-        predicted event
+        Est.{" "}
+        <span className="font-semibold text-gray-800">
+          {inverter.daysToEvent}
+        </span>{" "}
+        days to predicted event
       </p>
 
       {/* Analyze button */}
@@ -57,7 +67,9 @@ function Metric({ label, value, warn }) {
   return (
     <div>
       <span className="text-gray-500 text-xs">{label}</span>
-      <p className={`font-medium ${warn ? 'text-red-600' : 'text-gray-800'}`}>{value}</p>
+      <p className={`font-medium ${warn ? "text-red-600" : "text-gray-800"}`}>
+        {value}
+      </p>
     </div>
   );
 }

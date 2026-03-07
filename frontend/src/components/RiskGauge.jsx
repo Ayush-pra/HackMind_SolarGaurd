@@ -1,11 +1,10 @@
 const RISK_COLORS = {
-  Critical: { stroke: '#ef4444', bg: '#fef2f2' },
-  High: { stroke: '#f97316', bg: '#fff7ed' },
-  Moderate: { stroke: '#eab308', bg: '#fefce8' },
-  Low: { stroke: '#22c55e', bg: '#f0fdf4' },
+  "No Risk": { stroke: "#22c55e", bg: "#f0fdf4" },
+  "Degradation Risk": { stroke: "#eab308", bg: "#fefce8" },
+  "Shutdown Risk": { stroke: "#ef4444", bg: "#fef2f2" },
 };
 
-export default function RiskGauge({ score = 0, label = 'Low', size = 100 }) {
+export default function RiskGauge({ score = 0, label = "Low", size = 100 }) {
   const config = RISK_COLORS[label] || RISK_COLORS.Low;
   const radius = (size - 12) / 2;
   const circumference = Math.PI * radius; // half-circle
@@ -14,7 +13,11 @@ export default function RiskGauge({ score = 0, label = 'Low', size = 100 }) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg width={size} height={size / 2 + 10} viewBox={`0 0 ${size} ${size / 2 + 10}`}>
+      <svg
+        width={size}
+        height={size / 2 + 10}
+        viewBox={`0 0 ${size} ${size / 2 + 10}`}
+      >
         {/* Background arc */}
         <path
           d={`M 6 ${center} A ${radius} ${radius} 0 0 1 ${size - 6} ${center}`}
