@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import RandomizedSearchCV
 
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder3
 
 from sklearn.metrics import classification_report
 from sklearn.metrics import mean_absolute_error
@@ -67,7 +67,7 @@ FEATURES_NO_ALARM = KPI_COLUMNS + ["op_state"]
 # Encode classes
 # ------------------------------------------------
 
-encoder = LabelEncoder()
+encoder = LabelEncoder3()
 
 df["risk_class_encoded"] = encoder.fit_transform(df["risk_class"])
 
