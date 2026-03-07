@@ -34,7 +34,7 @@ class Features(BaseModel):
     voltage_imbalance: float | None = None
     power_std_6h: float | None = None
     efficiency_trend: float | None = None
-    op_state: str
+    op_state: int
 
 class PredictionResponse(BaseModel):
     risk_class: str
@@ -42,53 +42,50 @@ class PredictionResponse(BaseModel):
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(features: Features):
-    if not classifier or not regressor or not label_encoder:
+
+    if classifier is None or regressor is None or label_encoder is None:
         raise HTTPException(status_code=500, detail="Models not loaded")
 
-    print(f"Received features: {features.dict()}")
+    print("Received features:", features.dict())
 
-    # Convert to DataFrame
-    data = {
-        'power': [features.power],
-        'temp': [features.temp],
-        'efficiency': [features.efficiency],
-        'power_drop': [features.power_drop],
-        'voltage_dev': [features.voltage_dev],
-        'current_dev': [features.current_dev],
-        'current_imbalance': [features.current_imbalance],
-        'voltage_imbalance': [features.voltage_imbalance],
-        'power_std_6h': [features.power_std_6h],
-        'efficiency_trend': [features.efficiency_trend],
-        'op_state': [features.op_state],
-    }
-    df = pd.DataFrame(data)
-
-    print(f"DataFrame before processing: {df.to_dict()}")
-
-    # Handle missing values (fill with 0 or mean, depending on model training)
-    df = df.fillna(0)
-
-    # Note: label_encoder is for risk classes, not op_state
-    # op_state is kept as string - assuming the model can handle it
-
-    print(f"DataFrame after processing: {df.to_dict()}")
-
-    # Predict
     try:
-        risk_class_encoded = classifier.predict(df)[0]
-        risk_score = regressor.predict(df)[0]
 
-        print(f"Raw predictions - class_encoded: {risk_class_encoded}, score: {risk_score}")
+        df = pd.DataFrame([{
+            "power": features.power,
+            "temp": features.temp,
+            "efficiency": features.efficiency if features.efficiency is not None else 0,
+            "power_drop": features.power_drop if features.power_drop is not None else 0,
+            "voltage_dev": features.voltage_dev if features.voltage_dev is not None else 0,
+            "current_dev": features.current_dev if features.current_dev is not None else 0,
+            "current_imbalance": features.current_imbalance if features.current_imbalance is not None else 0,
+            "voltage_imbalance": features.voltage_imbalance if features.voltage_imbalance is not None else 0,
+            "power_std_6h": features.power_std_6h if features.power_std_6h is not None else 0,
+            "efficiency_trend": features.efficiency_trend if features.efficiency_trend is not None else 0,
+            "op_state": int(features.op_state)
+        }])
 
-        # Decode risk_class using label_encoder array
-        risk_class = label_encoder[risk_class_encoded]
+        print("Input dataframe:", df)
 
-        print(f"Decoded risk_class: {risk_class}")
+        class_encoded = int(classifier.predict(df)[0])
 
-        return PredictionResponse(risk_class=risk_class, risk_score=float(risk_score))
+        if class_encoded >= len(label_encoder):
+            raise ValueError("Invalid class prediction")
+
+        risk_class = label_encoder[class_encoded]
+
+        # Predict risk score
+        risk_score = float(regressor.predict(df)[0])
+
+        print("Prediction:", risk_class, risk_score)
+
+        return PredictionResponse(
+            risk_class=risk_class,
+            risk_score=risk_score
+        )
+
     except Exception as e:
-        print(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+        print("Prediction error:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():
@@ -111,15 +108,19 @@ async def health_check():
 
 @app.get("/models")
 async def get_model_info():
-    if not classifier or not regressor or not label_encoder:
+
+    if classifier is None or regressor is None or label_encoder is None:
         raise HTTPException(status_code=503, detail="Models not loaded")
-    
+
     return {
         "classifier": type(classifier).__name__,
         "regressor": type(regressor).__name__,
         "label_encoder": type(label_encoder).__name__,
-        "features": ["power", "temp", "efficiency", "power_drop", "voltage_dev", "current_dev", 
-                    "current_imbalance", "voltage_imbalance", "power_std_6h", "efficiency_trend", "op_state"]
+        "features": [
+            "power","temp","efficiency","power_drop","voltage_dev",
+            "current_dev","current_imbalance","voltage_imbalance",
+            "power_std_6h","efficiency_trend","op_state"
+        ]
     }
 
 if __name__ == "__main__":

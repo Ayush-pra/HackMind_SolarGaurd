@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export class MLServiceClient {
-  constructor(baseURL = process.env.ML_SERVICE_URL || 'http://localhost:8080') {
+  constructor(baseURL = process.env.ML_SERVICE_URL || 'http://localhost:8000') {
     this.client = axios.create({
       baseURL,
       timeout: 10000, // 10 second timeout
@@ -32,7 +32,7 @@ export class MLServiceClient {
   async predict(features, retries = 3) {
     try {
       console.log('Sending features to ML service:', features);
-      const response = await this.client.post('/predict',  features , {
+      const response = await this.client.post('/predict', features, {
         retry: retries,
         retryCount: 0
       });

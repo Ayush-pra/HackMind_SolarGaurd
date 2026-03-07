@@ -76,11 +76,31 @@ export const createTelemetry = async (req, res, next) => {
       faultNotes: faultNotes || '',
     });
 
-    // Update telemetry history
-    if (!telemetryHistory.has(inverterId)) {
-      telemetryHistory.set(inverterId, []);
+        // Load last telemetry history from memory or DB
+    let history = telemetryHistory.get(inverterId);
+
+    if (!history) {
+      const lastTelemetry = await Telemetry.find({ inverterId: inverter._id })
+        .sort({ createdAt: -1 })
+        .limit(288)
+        .lean();
+
+      history = lastTelemetry
+        .reverse()
+        .map(t => ({
+          timestamp: t.createdAt,
+          power: t.outputPower,
+          temp: t.temperature,
+          pvVoltages: t.pvVoltages,
+          pvCurrents: t.pvCurrents,
+          op_state: t.opState,
+          alarm_code: t.alarmCode,
+        }));
+
+      telemetryHistory.set(inverterId, history);
     }
-    const history = telemetryHistory.get(inverterId);
+
+    // push latest telemetry
     history.push({
       timestamp: telemetry.createdAt,
       power: telemetry.outputPower,
@@ -90,39 +110,47 @@ export const createTelemetry = async (req, res, next) => {
       op_state: telemetry.opState,
       alarm_code: telemetry.alarmCode,
     });
+
+    // keep max 288
     if (history.length > 288) {
       history.shift();
     }
 
     // Compute KPIs
     const features = KPICalculator.computeKpis(history);
-
+    features.op_state = parseInt(features.op_state) || 0;
     // Call ML service
     let prediction = null;
     try {
       prediction = await mlClient.predict(features);
+
+      if (prediction && prediction.risk_score !== undefined) {
+        prediction.risk_score = Number(prediction.risk_score.toFixed(2));
+      }
     } catch (mlError) {
       console.error('ML service error:', mlError.message);
       // Continue without prediction - graceful degradation
     }
 
     // Store prediction
-    if (prediction) {
+        if (prediction) {
+
+      const riskScore = Number(prediction.risk_score.toFixed(2));
+
       await Prediction.findOneAndUpdate(
         { inverterId: inverter._id },
         {
-          riskScore: prediction.risk_score,
+          riskScore,
           riskLevel: prediction.risk_class,
-          estimatedDaysToEvent: 365, // Default
-          riskTrend: 'stable', // Default
+          estimatedDaysToEvent: 365,
+          riskTrend: 'stable',
           lastUpdated: new Date(),
         },
         { upsert: true, new: true }
       );
 
-      // Update inverter
       await Inverter.findByIdAndUpdate(inverter._id, {
-        riskScore: prediction.risk_score,
+        riskScore,
         riskLevel: prediction.risk_class,
       });
     }
