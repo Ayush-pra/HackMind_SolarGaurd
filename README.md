@@ -272,10 +272,10 @@ When a prediction returns, XGBoost extracts the feature importances for the infe
 
 This project was built during the **HackMind** Hackathon.
 
-| Name | Role | Email | University | Grad Year |
-| :--- | :--- | :--- | :--- | :---: |
-| **Ayush Prajapati** (Leader) | Full Stack & ML Engineer | ayushprajapati15806@gmail.com | Nirma University | 2027 |
-| **Mannkumar Prajapati** | Frontend & Analytics Lead | mannprajapati0284@gmail.com | Nirma University | 2027 |
-| **Vivek Prajapati** | Backend & Database Architect | prajapativivek93165@gmail.com | Nirma University | 2027 |
-| **Tirth Patel** | UI/UX & Data Analyst | tirthpatel9606@gmail.com | Nirma University | 2027 |
-| **Vishv Sheta** | DevOps & Cloud Integration | vishv1511@gmail.com | Nirma University | 2027 |
+| Name | Email | University | Grad Year |
+| :--- | :--- | :--- | :---: |
+| **Ayush Prajapati** (Leader) | ayushprajapati15806@gmail.com | Nirma University | 2027 |
+| **Mannkumar Prajapati** | mannprajapati0284@gmail.com | Nirma University | 2027 |
+| **Vivek Prajapati** | prajapativivek93165@gmail.com | Nirma University | 2027 |
+| **Tirth Patel** | tirthpatel9606@gmail.com | Nirma University | 2027 |
+| **Vishv Sheta** | vishv1511@gmail.com | Nirma University | 2027 |
